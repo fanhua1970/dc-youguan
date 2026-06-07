@@ -8,39 +8,75 @@ app = Flask(__name__)
 DOWNLOAD_FOLDER = 'downloads'
 os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
 
-# 开启标准日志，方便在云平台控制台查看真实下载错误
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("yt_dlp_app")
 
-# 🎯 动态从环境变量恢复 cookies 文件的绝对路径
-COOKIES_PATH = os.path.join(os.path.abspath(DOWNLOAD_FOLDER), 'cookies.txt')
-cookies_env = os.environ.get('YT_COOKIES_DATA')
+# =====================================================================
+# 🎯 核心改动 1：直接把 cookies.txt 的全部内容粘贴到这里（死写进代码）
+# 注意：前后的三个单引号 ''' 不要删掉，直接把内容贴在它们中间。
+# =====================================================================
+COOKIES_TEXT = # Netscape HTTP Cookie File
+# https://curl.haxx.se/rfc/cookie_spec.html
+# This is a generated file! Do not edit.
 
-if cookies_env:
-    try:
-        with open(COOKIES_PATH, 'w', encoding='utf-8') as f:
-            f.write(cookies_env.strip())
-        logger.info(f"成功从环境变量加载 YouTube Cookies，写入路径: {COOKIES_PATH}")
-    except Exception as e:
-        logger.error(f"写入 Cookies 文件失败: {e}")
-else:
-    logger.warning("未检测到 YT_COOKIES_DATA 环境变量，将尝试免登录下载（极易被封锁）")
+.youtube.com	TRUE	/	TRUE	1795843973	__Secure-YNID	18.YT=iQOORlAe1-VjCAuHPy_c4ui8Vy0hmX6BWXuz85p_dhQF_HeW4DWCZXahnkYsJeP0THbkxifiSQL5-X1UoLpIdZ3t8FQUEvWx7LnuM52AMBuvQEXRUcQoijZdT3HpC-r3q0yKd1IvQSOzPAAKyFNKDpfRXTMcXGFrtyC1Pg9ggu_dktrCUY-lP-SQNk7OSDV8moRbBKp66fowS6ajEp9QvqDTlihYoH-4G25hGfDZiRo7JT9h3LSl3tSUjY8GcjSD6h4QRRk28mx8nqwOHf3P1mGz3z8M620lJLmt_T0yx0p1lQ0uOG-tO-5IvxOBy5js4TTiegHgNcbupTeHseCoYA
+.youtube.com	TRUE	/	TRUE	1780293773	GPS	1
+.youtube.com	TRUE	/	TRUE	0	YSC	0TKNa19zEKM
+.youtube.com	TRUE	/	TRUE	1795844058	VISITOR_INFO1_LIVE	ysbw7_O3MmQ
+.youtube.com	TRUE	/	TRUE	1795844058	VISITOR_PRIVACY_METADATA	CgJDQRIEGgAgOA%3D%3D
+.youtube.com	TRUE	/	TRUE	1814852080	PREF	tz=America.Vancouver&f5=30000
+.youtube.com	TRUE	/	TRUE	1811828056	__Secure-1PSIDTS	sidts-CjUBhkeRd1K_pCdmVK1KunUAUMEeGiEJcXPtajHK9WtqajOCxb1cRkSHRiUrPQarHP7rTXnONBAA
+.youtube.com	TRUE	/	TRUE	1811828056	__Secure-3PSIDTS	sidts-CjUBhkeRd1K_pCdmVK1KunUAUMEeGiEJcXPtajHK9WtqajOCxb1cRkSHRiUrPQarHP7rTXnONBAA
+.youtube.com	TRUE	/	FALSE	1814852056	HSID	AHBQaR6abx_dez1nR
+.youtube.com	TRUE	/	TRUE	1814852056	SSID	AR2uQO356Ytbr1ou9
+.youtube.com	TRUE	/	FALSE	1814852056	APISID	_6zAvfMS5yRG5DmU/A8lltiz8k6yEA5Lj7
+.youtube.com	TRUE	/	TRUE	1814852056	SAPISID	8eJsnbaqBFrz4lXx/AU6BoE_06U0DadwyK
+.youtube.com	TRUE	/	TRUE	1814852056	__Secure-1PAPISID	8eJsnbaqBFrz4lXx/AU6BoE_06U0DadwyK
+.youtube.com	TRUE	/	TRUE	1814852056	__Secure-3PAPISID	8eJsnbaqBFrz4lXx/AU6BoE_06U0DadwyK
+.youtube.com	TRUE	/	FALSE	1814852056	SID	g.a000-giqpcXDPKeZMfctBKt99JLkhFPXRDzXcEZW5EeoFmDn9f4KdsSfjUvAZ_fo6kZYxstoLQACgYKAVkSARYSFQHGX2MigLWPxBMDVB4j7rcIvBD7mBoVAUF8yKpJ1KLNOj77InV-52TigFpB0076
+.youtube.com	TRUE	/	TRUE	1814852056	__Secure-1PSID	g.a000-giqpcXDPKeZMfctBKt99JLkhFPXRDzXcEZW5EeoFmDn9f4KOf3qceWttNqSBecg81zSTwACgYKAV4SARYSFQHGX2MiUbSsKZOyxEeOeMMZALM3FhoVAUF8yKqVjJEHrhEGLeM0Mz14m6sc0076
+.youtube.com	TRUE	/	TRUE	1814852056	__Secure-3PSID	g.a000-giqpcXDPKeZMfctBKt99JLkhFPXRDzXcEZW5EeoFmDn9f4Kd8ssVhA7XItscM83kugxlwACgYKATASARYSFQHGX2MingXxG9lSL1LywdWrKbChjhoVAUF8yKoPoNZvw6-nC8cGJ2cJhci10076
+.youtube.com	TRUE	/	TRUE	1814852056	LOGIN_INFO	AFmmF2swRAIgKnKdZy0IihWLiVgvkgN43LY9oLgokP7ixiDfx79E1ckCIE-hG4JBi4KHgEESm2qp9y3medBhoXKdlY2e0FsR8e4H:QUQ3MjNmeUFyXzFWOG9hb2dYcDBpY0VVb3VRWWQ4ZEpHQzRjQ1lXVlNwY3dGcVlPYkxmaUppb1hGMWVHTmlrbWhCT3doS3FMRWZLS0hPb2tBdFFLSTEtSlBiQ3FMcExfSWdNR0UxcndlbXZwMS1xRmpuRTQyZWgtLW9qMFdMV25VMjFUVjg2Q1FUNGFJbVNNWGtDdWN4cjFzbTM5SE9vSTZ3
+.youtube.com	TRUE	/	FALSE	1811828066	SIDCC	AKEyXzWWUx6pmlsN0gvZ7n1ZGlq5XxqYIl-KPPTuJYwHLGYc5EXrJgU1bHrEDoKIIdRRBuaSGg
+.youtube.com	TRUE	/	TRUE	1811828066	__Secure-1PSIDCC	AKEyXzWR4Cq4sBC4pf0KWPyf-HRjEdshEE-n0X_ComBLU-TSr5umnRKJRxvr_2fzavo7J-gR
+.youtube.com	TRUE	/	TRUE	1811828066	__Secure-3PSIDCC	AKEyXzUj4WqDqYOnULTU2iEBZblhKPsKwPFC78nR-SF3uc-XJR-hy_Zy60K5Hq3PJ3umP-1L
+.youtube.com	TRUE	/	FALSE	1780292065	ST-l3hjtt	session_logininfo=AFmmF2swRAIgKnKdZy0IihWLiVgvkgN43LY9oLgokP7ixiDfx79E1ckCIE-hG4JBi4KHgEESm2qp9y3medBhoXKdlY2e0FsR8e4H%3AQUQ3MjNmeUFyXzFWOG9hb2dYcDBpY0VVb3VRWWQ4ZEpHQzRjQ1lXVlNwY3dGcVlPYkxmaUppb1hGMWVHTmlrbWhCT3doS3FMRWZLS0hPb2tBdFFLSTEtSlBiQ3FMcExfSWdNR0UxcndlbXZwMS1xRmpuRTQyZWgtLW9qMFdMV25VMjFUVjg2Q1FUNGFJbVNNWGtDdWN4cjFzbTM5SE9vSTZ3
+.youtube.com	TRUE	/	FALSE	1780292065	ST-tladcw	session_logininfo=AFmmF2swRAIgKnKdZy0IihWLiVgvkgN43LY9oLgokP7ixiDfx79E1ckCIE-hG4JBi4KHgEESm2qp9y3medBhoXKdlY2e0FsR8e4H%3AQUQ3MjNmeUFyXzFWOG9hb2dYcDBpY0VVb3VRWWQ4ZEpHQzRjQ1lXVlNwY3dGcVlPYkxmaUppb1hGMWVHTmlrbWhCT3doS3FMRWZLS0hPb2tBdFFLSTEtSlBiQ3FMcExfSWdNR0UxcndlbXZwMS1xRmpuRTQyZWgtLW9qMFdMV25VMjFUVjg2Q1FUNGFJbVNNWGtDdWN4cjFzbTM5SE9vSTZ3
+.youtube.com	TRUE	/	FALSE	1780292080	ST-3opvp5	session_logininfo=AFmmF2swRAIgKnKdZy0IihWLiVgvkgN43LY9oLgokP7ixiDfx79E1ckCIE-hG4JBi4KHgEESm2qp9y3medBhoXKdlY2e0FsR8e4H%3AQUQ3MjNmeUFyXzFWOG9hb2dYcDBpY0VVb3VRWWQ4ZEpHQzRjQ1lXVlNwY3dGcVlPYkxmaUppb1hGMWVHTmlrbWhCT3doS3FMRWZLS0hPb2tBdFFLSTEtSlBiQ3FMcExfSWdNR0UxcndlbXZwMS1xRmpuRTQyZWgtLW9qMFdMV25VMjFUVjg2Q1FUNGFJbVNNWGtDdWN4cjFzbTM5SE9vSTZ3
+.youtube.com	TRUE	/	FALSE	1780292068	ST-xuwub9	session_logininfo=AFmmF2swRAIgKnKdZy0IihWLiVgvkgN43LY9oLgokP7ixiDfx79E1ckCIE-hG4JBi4KHgEESm2qp9y3medBhoXKdlY2e0FsR8e4H%3AQUQ3MjNmeUFyXzFWOG9hb2dYcDBpY0VVb3VRWWQ4ZEpHQzRjQ1lXVlNwY3dGcVlPYkxmaUppb1hGMWVHTmlrbWhCT3doS3FMRWZLS0hPb2tBdFFLSTEtSlBiQ3FMcExfSWdNR0UxcndlbXZwMS1xRmpuRTQyZWgtLW9qMFdMV25VMjFUVjg2Q1FUNGFJbVNNWGtDdWN4cjFzbTM5SE9vSTZ3
+.youtube.com	TRUE	/	FALSE	1780292082	ST-b55704	itct=CP8CENwwIhMIsMvz3KjllAMVNg9oCB2v9ig7MgZnLWhpZ2haD0ZFd2hhdF90b193YXRjaJoBBhCOHhiACsoBBIf5vUU%3D&csn=fB62euV3_nU3So4c&session_logininfo=AFmmF2swRAIgKnKdZy0IihWLiVgvkgN43LY9oLgokP7ixiDfx79E1ckCIE-hG4JBi4KHgEESm2qp9y3medBhoXKdlY2e0FsR8e4H%3AQUQ3MjNmeUFyXzFWOG9hb2dYcDBpY0VVb3VRWWQ4ZEpHQzRjQ1lXVlNwY3dGcVlPYkxmaUppb1hGMWVHTmlrbWhCT3doS3FMRWZLS0hPb2tBdFFLSTEtSlBiQ3FMcExfSWdNR0UxcndlbXZwMS1xRmpuRTQyZWgtLW9qMFdMV25VMjFUVjg2Q1FUNGFJbVNNWGtDdWN4cjFzbTM5SE9vSTZ3&endpoint=%7B%22clickTrackingParams%22%3A%22CP8CENwwIhMIsMvz3KjllAMVNg9oCB2v9ig7MgZnLWhpZ2haD0ZFd2hhdF90b193YXRjaJoBBhCOHhiACsoBBIf5vUU%3D%22%2C%22commandMetadata%22%3A%7B%22webCommandMetadata%22%3A%7B%22url%22%3A%22%2Fwatch%3Fv%3DJWKqoYj8Npg%22%2C%22webPageType%22%3A%22WEB_PAGE_TYPE_WATCH%22%2C%22rootVe%22%3A3832%7D%7D%2C%22watchEndpoint%22%3A%7B%22videoId%22%3A%22JWKqoYj8Npg%22%2C%22watchEndpointSupportedOnesieConfig%22%3A%7B%22html5PlaybackOnesieConfig%22%3A%7B%22commonConfig%22%3A%7B%22url%22%3A%22https%3A%2F%2Frr1---sn-uxa0n-t8gd.googlevideo.com%2Finitplayback%3Fsource%3Dyoutube%26oeis%3D1%26c%3DWEB%26oad%3D3200%26ovd%3D3200%26oaad%3D11000%26oavd%3D11000%26ocs%3D700%26oewis%3D1%26oputc%3D1%26ofpcc%3D1%26siu%3D1%26msp%3D1%26odepv%3D1%26id%3D2562aaa188fc3698%26ip%3D2001%253A569%253A50fb%253A6d00%253Ada3a%253Addff%253Afed1%253Abdd0%26initcwndbps%3D3892500%26mt%3D1780291746%26oweuc%3D%26pxtags%3DCg4KAnR4Egg1MTgyODk2OA%26rxtags%3DCg4KAnR4Egg1MTgyODk2Nw%252CCg4KAnR4Egg1MTgyODk2OA%22%7D%7D%7D%7D%7D
+.youtube.com	TRUE	/	FALSE	1780292088	ST-amrb2j	session_logininfo=AFmmF2swRAIgKnKdZy0IihWLiVgvkgN43LY9oLgokP7ixiDfx79E1ckCIE-hG4JBi4KHgEESm2qp9y3medBhoXKdlY2e0FsR8e4H%3AQUQ3MjNmeUFyXzFWOG9hb2dYcDBpY0VVb3VRWWQ4ZEpHQzRjQ1lXVlNwY3dGcVlPYkxmaUppb1hGMWVHTmlrbWhCT3doS3FMRWZLS0hPb2tBdFFLSTEtSlBiQ3FMcExfSWdNR0UxcndlbXZwMS1xRmpuRTQyZWgtLW9qMFdMV25VMjFUVjg2Q1FUNGFJbVNNWGtDdWN4cjFzbTM5SE9vSTZ3
+.youtube.com	TRUE	/	TRUE	1795843976	__Secure-ROLLOUT_TOKEN	COfH6eSi0PqwUxDCro61qOWUAxillMC2qOWUAw%3D%3D
+
+'''
+# Netscape HTTP Cookie File
+# http://curl.haxx.se/docs/http-cookies.html
+# This file was generated by yt-dlp
+
+.youtube.com	TRUE	/	TRUE	1798112345	__Secure-3PAPISID	xxxxxxxxx
+.youtube.com	TRUE	/	TRUE	1798112345	__Secure-3PSID	xxxxxxxxx
+(把你的 cookies.txt 里面的全部文字完整粘贴替换到这里...)
+'''
+
+# 自动在运行目录生成一个真实的物理文件
+COOKIES_FILE_PATH = os.path.abspath("temp_cookies.txt")
+with open(COOKIES_FILE_PATH, "w", encoding="utf-8") as f:
+    f.write(COOKIES_TEXT.strip())
 
 def download_audio(url, output_path):
     ydl_opts = {
-        'format': '140/bestaudio[ext=m4a]',  # itag=140 或 best m4a
+        'format': '140/bestaudio[ext=m4a]',
         'outtmpl': output_path,
         'noplaylist': True,
         'quiet': True,
         'no_warnings': True,
-        'postprocessors': [],  # 不进行任何后处理
+        'postprocessors': [],
         'keepvideo': False,
-        'prefer_ffmpeg': False,  # 避免依赖 ffmpeg
+        'prefer_ffmpeg': False,
         
-        # 🎯 关键：如果存在从环境变量生成的 cookies 文件，就直接引用它
-        'cookiefile': COOKIES_PATH if os.path.exists(COOKIES_PATH) else None,
+        # 🎯 核心改动 2：强制指向这个在容器里刚生成的本地 Cookies 文件
+        'cookiefile': COOKIES_FILE_PATH,
         
-        # 增加移动端客户端欺骗
         'extractor_args': {
             'youtube': {
                 'player_client': ['android', 'ios']
@@ -48,19 +84,14 @@ def download_audio(url, output_path):
         }
     }
     
-    # 🎯 核心修复：在下载函数内部进行全包裹捕获，确保不扩散到线程层
+    # 🎯 核心改动 3：内部全面捕获，绝不让异常抛出到外部线程
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([url])
         return True, "成功"
-    except yt_dlp.utils.DownloadError as de:
-        error_msg = str(de)
-        logger.error(f"yt-dlp 下载器拦截报错: {error_msg}")
-        return False, error_msg
     except Exception as e:
-        error_msg = str(e)
-        logger.error(f"下载时发生未知异常: {error_msg}")
-        return False, error_msg
+        logger.error(f"yt-dlp 内部下载失败: {e}")
+        return False, str(e)
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -69,36 +100,29 @@ def index():
         if not url:
             return jsonify({"error": "请提供 YouTube URL"}), 400
 
-        # 生成唯一种子文件名
+        # 生成随机唯一文件名
         filename = f"{uuid.uuid4().hex}.m4a"
         filepath = os.path.join(DOWNLOAD_FOLDER, filename)
 
-        # 🎯 核心修复：移除你原本代码中的 threading.Thread，改为直接同步调用
-        # 这样 Flask 可以直接捕获到成功或失败的状态
-        success, message = download_audio(url, filepath)
+        # 🎯 核心改动 4：这里没有任何 threading.Thread！完全由当前 Flask 请求链同步执行！
+        success, err_msg = download_audio(url, filepath)
 
         if success and os.path.exists(filepath):
-            
-            # 注册钩子：等 Flask 把文件完全传输给用户浏览器后，再执行删除
             @after_this_request
             def remove_file(response):
                 try:
                     if os.path.exists(filepath):
                         os.remove(filepath)
-                        logger.info(f"临时音频文件清理成功: {filepath}")
-                except Exception as error:
-                    logger.error(f"清理临时文件失败: {error}")
+                        logger.info(f"清理文件成功: {filepath}")
+                except Exception as e:
+                    logger.error(f"清理文件失败: {e}")
                 return response
 
-            return send_file(filepath, as_attachment=True, download_name=f"download_{filename}")
+            return send_file(filepath, as_attachment=True, download_name=f"audio_{filename}")
         else:
-            # 下载失败时的清理与友好提示
             if os.path.exists(filepath):
                 os.remove(filepath)
-            
-            # 友好提示：如果是机器人拦截，直接给前端具体原因
-            friendly_err = "下载失败。YouTube 限制了请求（提示需要验证机器人）。请检查云平台环境变量中的 Cookies 是否过期。" if "bot" in message.lower() else f"下载失败: {message}"
-            return jsonify({"error": friendly_err}), 500
+            return jsonify({"error": f"下载失败，原因: {err_msg}"}), 500
 
     return render_template('index.html')
 
