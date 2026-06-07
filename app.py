@@ -16,6 +16,10 @@ def download_audio(url, output_path):
     ydl_opts = {
         'format': '140/bestaudio[ext=m4a]',  # itag=140 或 best m4a
         'outtmpl': output_path,
+
+        # 🎯 直接引用跟着代码一起打包进来的 cookies 文件
+        'cookiefile': 'cookies.txt',
+        
         'noplaylist': True,
         'quiet': True,
         'no_warnings': True,
