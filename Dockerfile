@@ -4,6 +4,8 @@ WORKDIR /app
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+# 在 Dockerfile 中更新
+RUN pip install -U yt-dlp
 
 COPY . .
 
